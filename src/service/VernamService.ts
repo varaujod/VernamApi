@@ -1,68 +1,72 @@
-import { randomInt } from 'node:crypto';
-import { DecryptDTO, EncryptDTO, VernamModel } from '../model/VernamModel.js';
+import { CifrarRequest, DecifrarRequest, VernamModel } from '../model/VernamModel.js';
 
 export class VernamService {
-  public encrypt({ message, key }: EncryptDTO): VernamModel {
-    if (!message) {
-      throw new Error('A mensagem é obrigatória.');
+  public cifrar({ textoClaro, chave }: CifrarRequest): VernamModel {
+    if (!textoClaro || !chave) {
+      throw new Error('Os campos textoClaro e chave são obrigatórios.');
     }
 
-    const messageBuffer = Buffer.from(message, 'utf-8');
-    const finalKey = key && key.trim().length > 0
-      ? key
-      : this.generateRandomKey(messageBuffer.length);
+    const textoClaroBuffer = Buffer.from(textoClaro, 'utf-8');
+    const chaveBuffer = Buffer.from(chave, 'utf-8');
 
-    const keyBuffer = Buffer.from(finalKey, 'utf-8');
-
-    if (keyBuffer.length < messageBuffer.length) {
-      throw new Error('A chave deve ter tamanho (em bytes) igual ou superior ao da mensagem.');
+    if (chaveBuffer.length < textoClaroBuffer.length) {
+      throw new Error('A chave deve ter tamanho (em bytes) igual ou superior ao do textoClaro.');
     }
 
-    const cipherBuffer = this.applyXor(messageBuffer, keyBuffer);
+    const cifradoBuffer = this.applyXor(textoClaroBuffer, chaveBuffer);
+    const textoCifradoBinario = this.bufferToBinary(cifradoBuffer);
 
     return new VernamModel({
-      message,
-      ciphertext: cipherBuffer.toString('hex'),
-      key: finalKey,
-      format: 'hex'
+      textoClaro,
+      textoCifrado: textoCifradoBinario,
+      chave
     });
   }
 
-  public decrypt({ ciphertext, key }: DecryptDTO): VernamModel {
-    if (!ciphertext || !key) {
-      throw new Error('Texto cifrado e chave são obrigatórios.');
+  public decifrar({ textoCifrado, chave }: DecifrarRequest): VernamModel {
+    if (!textoCifrado || !chave) {
+      throw new Error('Os campos textoCifrado e chave são obrigatórios.');
     }
 
-    if (!/^[0-9a-fA-F]+$/.test(ciphertext) || ciphertext.length % 2 !== 0) {
-      throw new Error('O texto cifrado deve estar em formato hexadecimal válido.');
+    if (!/^[01]+$/.test(textoCifrado) || textoCifrado.length % 8 !== 0) {
+      throw new Error('O textoCifrado deve ser uma string binária válida (múltipla de 8 bits).');
     }
 
-    const cipherBuffer = Buffer.from(ciphertext, 'hex');
-    const keyBuffer = Buffer.from(key, 'utf-8');
+    const cifradoBuffer = this.binaryToBuffer(textoCifrado);
+    const chaveBuffer = Buffer.from(chave, 'utf-8');
 
-    if (keyBuffer.length < cipherBuffer.length) {
-      throw new Error('A chave deve ter tamanho igual ou superior ao do texto cifrado.');
+    if (chaveBuffer.length < cifradoBuffer.length) {
+      throw new Error('A chave deve ter tamanho (em bytes) igual ou superior ao do textoCifrado.');
     }
 
-    const plainBuffer = this.applyXor(cipherBuffer, keyBuffer);
+    const textoClaroBuffer = this.applyXor(cifradoBuffer, chaveBuffer);
 
     return new VernamModel({
-      message: plainBuffer.toString('utf-8'),
-      ciphertext,
-      key,
-      format: 'hex'
+      textoClaro: textoClaroBuffer.toString('utf-8'),
+      textoCifrado,
+      chave
     });
   }
-  private generateRandomKey(length: number): string {
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
-    let generated = '';
 
-    for (let i = 0; i < length; i++) {
-      const randomIndex = randomInt(0, charset.length);
-      generated += charset[randomIndex];
+  private bufferToBinary(buffer: Buffer): string {
+    let binary = '';
+    for (let i = 0; i < buffer.length; i++) {
+      binary += buffer[i].toString(2).padStart(8, '0');
+    }
+    return binary;
+  }
+
+
+  private binaryToBuffer(binary: string): Buffer {
+    const byteLength = binary.length / 8;
+    const buffer = Buffer.alloc(byteLength);
+
+    for (let i = 0; i < byteLength; i++) {
+      const byteBits = binary.slice(i * 8, i * 8 + 8);
+      buffer[i] = parseInt(byteBits, 2);
     }
 
-    return generated;
+    return buffer;
   }
 
   private applyXor(dataBuffer: Buffer, keyBuffer: Buffer): Buffer {

@@ -11,26 +11,24 @@ export class VernamController {
 
   public encrypt = (req: Request, res: Response): Response => {
     try {
-      const message = req.body.message || req.body.mensagem || req.body.texto || req.body.text;
-      const key = req.body.key || req.body.chave;
+      const { textoClaro, chave } = req.body;
+      const result = this.vernamService.cifrar({ textoClaro, chave });
 
-      const result = this.vernamService.encrypt({ message, key });
-      return res.status(200).json(VernamView.renderEncrypt(result));
+      return res.status(200).json(VernamView.renderCifrar(result));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao cifrar mensagem.';
+      const errorMessage = err instanceof Error ? err.message : 'Requisição inválida.';
       return res.status(400).json(VernamView.renderError(errorMessage));
     }
   };
 
   public decrypt = (req: Request, res: Response): Response => {
     try {
-      const ciphertext = req.body.ciphertext || req.body.texto_cifrado || req.body.message || req.body.mensagem;
-      const key = req.body.key || req.body.chave;
+      const { textoCifrado, chave } = req.body;
+      const result = this.vernamService.decifrar({ textoCifrado, chave });
 
-      const result = this.vernamService.decrypt({ ciphertext, key });
-      return res.status(200).json(VernamView.renderDecrypt(result));
+      return res.status(200).json(VernamView.renderDecifrar(result));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao decifrar mensagem.';
+      const errorMessage = err instanceof Error ? err.message : 'Requisição inválida.';
       return res.status(400).json(VernamView.renderError(errorMessage));
     }
   };

@@ -1,28 +1,25 @@
-export interface EncryptDTO {
-  message: string;
-  key?: string;
+export interface CifrarRequest {
+  textoClaro: string;
+  chave: string;
 }
 
-export interface DecryptDTO {
-  ciphertext: string;
-  key: string;
+export interface DecifrarRequest {
+  textoCifrado: string;
+  chave: string;
 }
 
 export class VernamModel {
-  public readonly message: string;
-  public readonly ciphertext: string;
-  public readonly key: string;
-  public readonly format: string;
+  public readonly textoClaro: string;
+  public readonly textoCifrado: string;
+  public readonly chave: string;
 
   constructor(params: {
-    message: string;
-    ciphertext: string;
-    key: string;
-    format?: string;
+    textoClaro: string;
+    textoCifrado: string;
+    chave: string;
   }) {
-    this.message = params.message;
-    this.ciphertext = params.ciphertext;
-    this.key = params.key;
-    this.format = params.format ?? 'hex';
+    this.textoClaro = params.textoClaro;
+    this.textoCifrado = params.textoCifrado;
+    this.chave = params.chave;
   }
 }
