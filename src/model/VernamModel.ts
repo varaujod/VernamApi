@@ -17,7 +17,9 @@ export class VernamModel {
     textoClaro: string;
     textoCifrado: string;
     chave: string;
-  }) {
+  }) 
+  
+  {
     this.textoClaro = params.textoClaro;
     this.textoCifrado = params.textoCifrado;
     this.chave = params.chave;

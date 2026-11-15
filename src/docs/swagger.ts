@@ -1,10 +1,9 @@
 export const swaggerDocument = {
   openapi: '3.0.0',
   info: {
-    title: 'API Cifra de Vernam - IFSP Boituva',
+    title: 'API Cifra de Vernan - Bruna Serra Amorim e Vinicius Araujo Domingues',
     version: '1.0.0',
-    description:
-      'API REST para encriptação e decriptação de mensagens utilizando a Cifra de Vernam (operação XOR bit a bit).'
+    description: 'API para cifrar e decifrar mensagens utilizando a Cifra de Vernam usando Typescript/express e Node.js.'
   },
   servers: [
     {
@@ -12,81 +11,33 @@ export const swaggerDocument = {
       description: 'Servidor Local'
     }
   ],
-  tags: [
-    {
-      name: 'Criptografia',
-      description: 'Operações de cifragem e decifragem via Cifra de Vernam'
-    },
-    {
-      name: 'Status',
-      description: 'Verificação de disponibilidade da API'
-    }
-  ],
   paths: {
-    '/': {
-      get: {
-        tags: ['Status'],
-        summary: 'Verifica se a API está online',
-        responses: {
-          '200': {
-            description: 'API operacional',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    status: { type: 'string', example: 'online' },
-                    architecture: { type: 'string', example: 'MSCV' },
-                    service: {
-                      type: 'string',
-                      example: 'API Cifra de Vernam - IFSP Boituva'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     '/cifrar': {
       post: {
-        tags: ['Criptografia'],
-        summary: 'Cifra uma mensagem usando a Cifra de Vernam',
-        description:
-          'Aplica XOR byte a byte entre a mensagem e a chave (a chave deve ter tamanho maior ou igual ao da mensagem). Também acessível via /encrypt e /criptografar.',
+        summary: 'Cifra uma mensagem usando a Cifra de Vernan',
         requestBody: {
           required: true,
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/EncryptRequest'
-              },
-              examples: {
-                exemploSlide: {
-                  summary: 'Exemplo do slide (OLA + CHT)',
-                  value: {
-                    mensagem: 'OLA',
-                    chave: 'CHT'
-                  }
-                }
+                $ref: '#/components/schemas/CifrarRequest'
               }
             }
           }
         },
         responses: {
           '200': {
-            description: 'Mensagem cifrada com sucesso (saída em hexadecimal)',
+            description: 'Mensagem cifrada com sucesso',
             content: {
               'application/json': {
                 schema: {
-                  $ref: '#/components/schemas/EncryptResponse'
+                  $ref: '#/components/schemas/CifrarResponse'
                 }
               }
             }
           },
           '400': {
-            description: 'Erro de validação (campos ausentes ou chave menor que a mensagem)',
+            description: 'Requisição inválida',
             content: {
               'application/json': {
                 schema: {
@@ -100,25 +51,13 @@ export const swaggerDocument = {
     },
     '/decifrar': {
       post: {
-        tags: ['Criptografia'],
-        summary: 'Decifra uma mensagem hexadecimal usando a Cifra de Vernam',
-        description:
-          'Recebe o texto cifrado em hexadecimal e aplica XOR byte a byte com a chave original. Também acessível via /decrypt e /descriptografar.',
+        summary: 'Decifra uma mensagem cifrada usando a Cifra de Vernan',
         requestBody: {
           required: true,
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/DecryptRequest'
-              },
-              examples: {
-                exemploSlide: {
-                  summary: 'Exemplo do slide (0c0415 + CHT -> OLA)',
-                  value: {
-                    texto_cifrado: '0c0415',
-                    chave: 'CHT'
-                  }
-                }
+                $ref: '#/components/schemas/DecifrarRequest'
               }
             }
           }
@@ -129,13 +68,13 @@ export const swaggerDocument = {
             content: {
               'application/json': {
                 schema: {
-                  $ref: '#/components/schemas/DecryptResponse'
+                  $ref: '#/components/schemas/DecifrarResponse'
                 }
               }
             }
           },
           '400': {
-            description: 'Erro de validação (hexadecimal inválido ou chave curta)',
+            description: 'Requisição inválida',
             content: {
               'application/json': {
                 schema: {
@@ -146,79 +85,65 @@ export const swaggerDocument = {
           }
         }
       }
-    },
+    }
+  },
   components: {
     schemas: {
-      EncryptRequest: {
+      CifrarRequest: {
         type: 'object',
-        required: ['mensagem', 'chave'],
+        required: ['textoClaro', 'chave'],
         properties: {
-          mensagem: {
+          textoClaro: {
             type: 'string',
-            description: 'Texto claro a ser cifrado',
             example: 'OLA'
           },
           chave: {
             type: 'string',
-            description: 'Chave com tamanho maior ou igual ao da mensagem',
             example: 'CHT'
           }
         }
       },
-      EncryptResponse: {
+      CifrarResponse: {
         type: 'object',
         properties: {
-          message: { type: 'string', example: 'OLA' },
-          mensagem: { type: 'string', example: 'OLA' },
-          key: { type: 'string', example: 'CHT' },
-          chave: { type: 'string', example: 'CHT' },
-          ciphertext: { type: 'string', example: '0c0415' },
-          texto_cifrado: { type: 'string', example: '0c0415' },
-          format: { type: 'string', example: 'hex' }
+          textoCifrado: {
+            type: 'string',
+            example: '000011000000010000010101'
+          }
         }
       },
-      DecryptRequest: {
+      DecifrarRequest: {
         type: 'object',
-        required: ['texto_cifrado', 'chave'],
+        required: ['textoCifrado', 'chave'],
         properties: {
-          texto_cifrado: {
+          textoCifrado: {
             type: 'string',
-            description: 'Texto cifrado em formato hexadecimal',
-            example: '0c0415'
+            example: '000011000000010000010101'
           },
           chave: {
             type: 'string',
-            description: 'Mesma chave utilizada na cifragem',
             example: 'CHT'
           }
         }
       },
-      DecryptResponse: {
+      DecifrarResponse: {
         type: 'object',
         properties: {
-          ciphertext: { type: 'string', example: '0c0415' },
-          texto_cifrado: { type: 'string', example: '0c0415' },
-          key: { type: 'string', example: 'CHT' },
-          chave: { type: 'string', example: 'CHT' },
-          decrypted: { type: 'string', example: 'OLA' },
-          mensagem_descriptografada: { type: 'string', example: 'OLA' }
+          textoClaro: {
+            type: 'string',
+            example: 'OLA'
+          }
         }
       },
       ErrorResponse: {
         type: 'object',
         properties: {
-          error: {
-            type: 'string',
-            example: 'A chave deve ter tamanho (em bytes) igual ou superior ao da mensagem.'
-          },
           erro: {
             type: 'string',
-            example: 'A chave deve ter tamanho (em bytes) igual ou superior ao da mensagem.'
+            example: 'Requisição inválida'
           }
         }
       }
     }
   }
-}
-
-}
+};
