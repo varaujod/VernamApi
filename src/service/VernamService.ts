@@ -9,8 +9,8 @@ export class VernamService {
     const textoClaroBuffer = Buffer.from(textoClaro, 'utf-8');
     const chaveBuffer = Buffer.from(chave, 'utf-8');
 
-    if (chaveBuffer.length < textoClaroBuffer.length) {
-      throw new Error('A chave deve ter tamanho (em bytes) igual ou superior ao do textoClaro.');
+    if (chaveBuffer.length !== textoClaroBuffer.length) {
+      throw new Error('A chave deve ter exatamente o mesmo tamanho (em bytes) do textoClaro.');
     }
 
     const cifradoBuffer = this.applyXor(textoClaroBuffer, chaveBuffer);
@@ -35,8 +35,8 @@ export class VernamService {
     const cifradoBuffer = this.binaryToBuffer(textoCifrado);
     const chaveBuffer = Buffer.from(chave, 'utf-8');
 
-    if (chaveBuffer.length < cifradoBuffer.length) {
-      throw new Error('A chave deve ter tamanho (em bytes) igual ou superior ao do textoCifrado.');
+    if (chaveBuffer.length !== cifradoBuffer.length) {
+      throw new Error('A chave deve ter exatamente o mesmo tamanho (em bytes) do textoCifrado.');
     }
 
     const textoClaroBuffer = this.applyXor(cifradoBuffer, chaveBuffer);
